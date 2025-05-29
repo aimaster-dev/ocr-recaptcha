@@ -1,106 +1,124 @@
-# 🔐 Bank CAPTCHA Recognition
+# 🔐 OCR ReCaptcha Solver (MB Bank CAPTCHA)
 
-This project is a Python-based system for recognizing CAPTCHA images from MB Bank using deep learning (PyTorch). It includes image scraping, dataset handling, model training, and prediction through a simple server.
-
----
-
-## 📁 Project Structure
-
-```
-.
-├── __pycache__/                # Python cache files
-├── mbbank_dataset/            # (Likely) contains training/testing image sets
-├── CONFIG.py                  # Configuration for model and dataset (char set, image size, etc.)
-├── MAIN.py                    # Main script for training and testing the model
-├── datasets.py                # Custom PyTorch dataset classes
-├── mbbank_scrapping.py        # Script to scrape CAPTCHA images from MB Bank
-├── model.pth                  # Trained PyTorch model
-├── requirements.txt           # Python dependencies
-├── server.py                  # Flask API for inference
-└── temp.png                   # Temp file used during prediction
-```
+This project is an end-to-end OCR system designed to recognize CAPTCHA images—specifically from MB Bank (Vietnam). It includes tools to **scrape**, **train**, and **serve** a model that can decode distorted characters from CAPTCHA images using deep learning.
 
 ---
 
-## 🚀 Features
+## 📸 Overview
 
-* ✅ Download CAPTCHA images directly from the bank site
-* ✅ Train a CNN model using PyTorch
-* ✅ Evaluate and predict CAPTCHA text
-* ✅ Serve predictions via a Flask API (`server.py`)
-* ✅ Save base64 images or decode them directly for inference
+![example](https://github.com/aimaster-dev/ocr-recaptcha/raw/main/temp.png)
 
 ---
 
-## 📦 Installation
+## 🧠 Features
+
+* 🚀 **CNN-based CAPTCHA recognition** using PyTorch
+* 🛠 **Custom Dataset loader** with multi-label classification
+* 📥 **CAPTCHA scraper** from MB Bank login page
+* 🌐 **Flask API server** for real-time predictions
+* 📦 Clean and modular structure for training + inference
+
+---
+
+## 🗂️ Project Structure
 
 ```bash
-git clone <repo-url>
-cd <project-folder>
+ocr-recaptcha/
+├── __pycache__/                # Python cache
+├── mbbank_dataset/            # Folder for training/test CAPTCHA images
+├── CONFIG.py                  # Configuration (image size, char set, model path)
+├── MAIN.py                    # Main script to train or test the model
+├── datasets.py                # Custom PyTorch Dataset class
+├── mbbank_scrapping.py        # Script to scrape new CAPTCHA images
+├── model.pth                  # Trained CNN model
+├── requirements.txt           # Python dependencies
+├── server.py                  # Flask server for API-based prediction
+├── temp.png                   # Temporary file used for API testing
+```
+
+---
+
+## ⚙️ Installation
+
+```bash
+git clone https://github.com/aimaster-dev/ocr-recaptcha.git
+cd ocr-recaptcha
 pip install -r requirements.txt
 ```
 
 ---
 
-## 📥 Download CAPTCHA Images
+## 📥 Scrape CAPTCHA Images
 
-You can collect images using:
+Run the scraping script to download new CAPTCHA images:
 
 ```bash
 python mbbank_scrapping.py
 ```
 
-Images will be saved (likely) into `mbbank_dataset/` or a similar folder. Adjust inside `mbbank_scrapping.py` if needed.
+Images are saved into `mbbank_dataset/` (you can modify this inside the script).
 
 ---
 
 ## 🏋️ Train the Model
 
-Make sure the training images are in the correct format (image name = label, e.g., `ABC123.jpg`).
+Ensure your image filenames represent the correct CAPTCHA labels (e.g., `AB12cd.jpg`):
 
 ```bash
 python MAIN.py
 ```
 
-> This will train a CNN on the dataset and save the model as `model.pth`.
+This will train the CNN and save the weights to `model.pth`.
 
 ---
 
-## 🔍 Predict CAPTCHA (Batch or Single)
+## 🔍 Test the Model
 
-To predict all CAPTCHA images in a folder:
+To test the model on all CAPTCHA images in a folder:
 
 ```bash
-python MAIN.py
-# Internally calls `check_all()` to run inference on `./data/test/`
+# Inside MAIN.py, you can call:
+CrackLettesInt4().check_all('mbbank_dataset/test')
 ```
+
+This will:
+
+* Predict each CAPTCHA
+* Print the result
+* Move it to `./test/<prediction>.jpg`
 
 ---
 
-## 🌐 Run the API Server
+## 🌐 Run the Flask API
 
-Start a local Flask server to handle image prediction requests:
+Start a REST API server for inference:
 
 ```bash
 python server.py
 ```
 
-### Example API Usage
+### 🧪 Test API
 
-**POST /predict**
-
-* Form-data: `image` (file)
-* JSON: `image_base64` (string)
+Send a file:
 
 ```bash
-curl -X POST -F "image=@temp.png" http://localhost:8001/predict
+curl -X POST -F "image=@mbbank_dataset/sample.jpg" http://localhost:8001/predict
 ```
 
-OR
+Send base64:
+
+```json
+POST /predict
+{
+  "image_base64": "data:image/png;base64,iVBORw0KGgoAAAANS..."
+}
+```
+
+Response:
 
 ```json
 {
-  "image_base64": "data:image/png;base64,iVBORw0KG..."
+  "prediction": ["4Hd6Rf"]
 }
 ```
 
@@ -108,61 +126,50 @@ OR
 
 ## 🔠 Character Set
 
-The model supports the following characters:
+Supported characters (from `CONFIG.py`):
 
 ```
 123456789ABDEFGHJMNRTYabdefghjmnqrty
 ```
 
----
-
-## 🖼 Image Format
-
-* Width: `200px`
-* Height: `35px`
-* CAPTCHA Length: `6`
+* CAPTCHA Length: 6
+* Image Size: `200x35`
 
 ---
 
-## 🧪 Example Output
+## 🧾 Requirements
 
-The prediction system uses softmax and argmax over CNN outputs and maps indices to characters defined in `CONFIG.py`.
+```txt
+torch
+torchvision
+flask
+Pillow
+numpy
+shortuuid
+```
 
----
-
-## 📄 Requirements
-
-Install dependencies via:
+Install via:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-You may find:
+---
 
-```
-torch
-torchvision
-flask
-Pillow
-shortuuid
-numpy
-```
+## ✅ Tips
+
+* Customize CAPTCHA source URLs in `mbbank_scrapping.py`.
+* Update image paths or save logic in `MAIN.py` and `datasets.py` if needed.
+* To extend: Add beam search, augmentations, or use CRNN with CTC for harder CAPTCHAs.
 
 ---
 
-## 🛠️ Notes
+## 🧑‍💻 Author
 
-* `model.pth` is the trained model and will be loaded during inference.
-* `temp.png` is used as a staging file during predictions via API or script.
-* Adjust `CONFIG.py` for different CAPTCHA sources or configurations.
+Maintained by **[aimaster-dev](https://github.com/aimaster-dev)**.
 
 ---
 
-## 📧 License
+## 📄 License
 
-This project is provided for educational purposes only. Use responsibly.
-
----
-
-Let me know if you want the README file exported or modified to support Docker, advanced usage, or model visualization.
+This project is open-source and available under the [MIT License](LICENSE).
