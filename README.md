@@ -1,6 +1,6 @@
 # 🔐 OCR ReCaptcha Solver (MB Bank CAPTCHA)
 
-This project is an end-to-end OCR system designed to recognize CAPTCHA images—specifically from MB Bank (Vietnam). It includes tools to **scrape**, **train**, and **serve** a model that can decode distorted characters from CAPTCHA images using deep learning.
+This project is an end-to-end OCR system designed to recognize CAPTCHA images—specifically from some Banks. It includes tools to **scrape**, **train**, and **serve** a model that can decode distorted characters from CAPTCHA images using deep learning.
 
 ---
 
